@@ -14,6 +14,8 @@
 #   install.d/50-claude-md.sh    · ~/CLAUDE.md (evidencias en video)
 #   install.d/60-skill.sh        · skill validar-links-referido-mercadolibre
 #   install.d/70-rtk.sh          · instala y configura rtk
+#   install.d/80-node-toolchain.sh · corepack + yarn 3.6.4 (+ watchman opcional)
+#   install.d/90-android-sdk.sh  · JDK 17 + Android SDK 36 + NDK (build avena-mobile)
 #
 # Idempotente. VIDEO_API_TOKEN lo inyecta Conductor como secret en runtime.
 # Cada módulo es ejecutable por sí solo (sourcea 00-common.sh si hace falta):
@@ -35,6 +37,8 @@ MODULES=(
   50-claude-md.sh
   60-skill.sh
   70-rtk.sh
+  80-node-toolchain.sh
+  90-android-sdk.sh
 )
 
 for m in "${MODULES[@]}"; do
