@@ -36,7 +36,9 @@ cat > "$APP_DIR/publish-video.js" <<'PUBLISH_JS_EOF'
 //
 // Env vars:
 //    VIDEO_API_TOKEN  (required)  Bearer token for the videos API
-//    VIDEO_API_BASE   default https://videos.brandonhsz.com
+//    VIDEO_API_BASE   default: try https://videos.brandonhsz.com, then fall
+//                     back to https://development-videos-viewer.vercel.app
+//                     (set it to force a single base and skip the fallback)
 //    APP_URL          default http://localhost:3005/   (also arg 1)
 //    VIDEOS_DIR       default ~/playwright-videos       (work dir for recordings)
 //    FFMPEG           auto         Path to an ffmpeg with libx264 (H.264)
@@ -50,7 +52,13 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const API_BASE = (process.env.VIDEO_API_BASE || "https://videos.brandonhsz.com").replace(/\/$/, "");
+// Publish targets, tried in order. An explicit VIDEO_API_BASE wins and skips
+// the fallback; otherwise try the custom domain first, then the vercel.app URL.
+const API_BASES = (
+  process.env.VIDEO_API_BASE
+    ? [process.env.VIDEO_API_BASE]
+    : ["https://videos.brandonhsz.com", "https://development-videos-viewer.vercel.app"]
+).map((b) => b.replace(/\/+$/, ""));
 const TOKEN = process.env.VIDEO_API_TOKEN;
 const VIDEOS_DIR = process.env.VIDEOS_DIR || path.join(os.homedir(), "playwright-videos");
 const url = process.argv[2] || process.env.APP_URL || "http://localhost:3005/";
@@ -145,11 +153,10 @@ async function toMp4(webmPath) {
   return mp4Path;
 }
 
-async function publish(mp4Path) {
-  const filename = path.basename(mp4Path);
-
+// Publish against one base: ask for a presigned URL, PUT the file, then notify.
+async function publishTo(base, mp4Path, filename, body) {
   // 1) ask for a presigned upload URL
-  const res = await fetch(`${API_BASE}/api/videos/upload-url`, {
+  const res = await fetch(`${base}/api/videos/upload-url`, {
     method: "POST",
     headers: {
       authorization: `Bearer ${TOKEN}`,
@@ -166,7 +173,6 @@ async function publish(mp4Path) {
   }
 
   // 2) PUT the file to R2
-  const body = fs.readFileSync(mp4Path);
   const put = await fetch(uploadUrl, {
     method: "PUT",
     headers: { "content-type": "video/mp4" },
@@ -177,14 +183,31 @@ async function publish(mp4Path) {
   }
 
   // 3) best-effort: tell the API the upload finished so it can send a push
-  await notify(key);
+  await notify(base, key);
 
   return publicUrl;
 }
 
-async function notify(key) {
+// Try each base in order; return on the first that publishes successfully.
+async function publish(mp4Path) {
+  const filename = path.basename(mp4Path);
+  const body = fs.readFileSync(mp4Path);
+  let lastError;
+  for (const base of API_BASES) {
+    try {
+      console.log(`[publish-video] publishing via ${base}`);
+      return await publishTo(base, mp4Path, filename, body);
+    } catch (e) {
+      lastError = e;
+      console.warn(`[publish-video] ${base} failed: ${e.message || e}`);
+    }
+  }
+  throw lastError ?? new Error("no VIDEO_API_BASE succeeded");
+}
+
+async function notify(base, key) {
   try {
-    const res = await fetch(`${API_BASE}/api/videos/uploaded`, {
+    const res = await fetch(`${base}/api/videos/uploaded`, {
       method: "POST",
       headers: {
         authorization: `Bearer ${TOKEN}`,
