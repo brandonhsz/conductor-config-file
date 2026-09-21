@@ -18,6 +18,7 @@
 #   install.d/85-obsidian-headless.sh · cliente 'ob' + login/sync del second brain
 #   install.d/90-android-sdk.sh  · JDK 17 + Android SDK 36 + NDK (build avena-mobile)
 #   install.d/95-gentle-ai.sh    · gentle-ai (claude-code, full-gentleman, persona, SDD multi)
+#   install.d/96-second-brain-feeder.sh · feeder Engram → vault Obsidian (hook SessionEnd; tras gentle-ai)
 #
 # Idempotente. VIDEO_API_TOKEN lo inyecta Conductor como secret en runtime.
 # Cada módulo es ejecutable por sí solo (sourcea 00-common.sh si hace falta):
@@ -43,6 +44,7 @@ MODULES=(
   85-obsidian-headless.sh
   90-android-sdk.sh
   95-gentle-ai.sh
+  96-second-brain-feeder.sh
 )
 
 for m in "${MODULES[@]}"; do
