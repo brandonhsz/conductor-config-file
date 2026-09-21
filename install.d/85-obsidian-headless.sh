@@ -33,16 +33,15 @@ fi
 # --- Login + sync-setup solo si hay credenciales (el build es NO interactivo) ---
 if [ -n "${OBSIDIAN_EMAIL:-}" ] && [ -n "${OBSIDIAN_PASSWORD:-}" ]; then
   log "Login en Obsidian como ${OBSIDIAN_EMAIL}…"
-  if ob login --email "$OBSIDIAN_EMAIL" --password "$OBSIDIAN_PASSWORD" </dev/null >/dev/null 2>&1; then
+  if printf '%s\n' "$OBSIDIAN_PASSWORD" | ob login --email "$OBSIDIAN_EMAIL" >/dev/null 2>&1; then
     log "Login OK."
     if [ -n "${OBSIDIAN_VAULT:-}" ] && [ -n "${OBSIDIAN_ENCRYPTION_PASSWORD:-}" ]; then
       mkdir -p "$OBSIDIAN_VAULT_PATH"
       log "Configurando sync del vault '${OBSIDIAN_VAULT}' → ${OBSIDIAN_VAULT_PATH}…"
-      if ob sync-setup \
+      if printf '%s\n' "$OBSIDIAN_ENCRYPTION_PASSWORD" | ob sync-setup \
             --vault "$OBSIDIAN_VAULT" \
             --path "$OBSIDIAN_VAULT_PATH" \
-            --password "$OBSIDIAN_ENCRYPTION_PASSWORD" \
-            --device-name "conductor-cloud" </dev/null >/dev/null 2>&1; then
+            --device-name "conductor-cloud" >/dev/null 2>&1; then
         log "Sync configurado; pull inicial…"
         ob sync --path "$OBSIDIAN_VAULT_PATH" </dev/null >/dev/null 2>&1 \
           && log "Vault sincronizado en ${OBSIDIAN_VAULT_PATH}." \
