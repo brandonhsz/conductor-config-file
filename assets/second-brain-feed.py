@@ -113,6 +113,71 @@ def export_observations(project: str) -> dict:
             pass
 
 
+def _run_ob(args: list[str], stdin_text: str | None = None, timeout: int = 90):
+    return subprocess.run(
+        ["ob", *args],
+        input=(stdin_text + "\n") if stdin_text is not None else None,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
+
+
+def ensure_ob_ready(vault_path: Path) -> bool:
+    """Best-effort: garantiza que `ob` esté logueado y con sync configurado para
+    vault_path usando las env vars de runtime (Conductor las inyecta en el
+    workspace, NO en el build sandbox). Los secretos van por STDIN, nunca por
+    argv. Idempotente: si el vault ya está configurado, no hace nada."""
+    try:
+        listed = _run_ob(["sync-list-local"], timeout=30)
+        if listed.returncode == 0 and str(vault_path) in (listed.stdout or ""):
+            return True
+    except Exception:
+        pass  # seguimos e intentamos configurar
+
+    email = os.environ.get("OBSIDIAN_EMAIL")
+    password = os.environ.get("OBSIDIAN_PASSWORD")
+    if not email or not password:
+        log("WARN: sin OBSIDIAN_EMAIL/OBSIDIAN_PASSWORD en runtime; no autoconfiguro 'ob' (la nota igual se escribe).")
+        return False
+
+    log("configurando 'ob' para este workspace (login + sync-setup)…")
+    try:
+        login = _run_ob(["login", "--email", email], stdin_text=password)
+        if login.returncode != 0:
+            log(f"WARN: 'ob login' falló (código {login.returncode}): {(login.stderr or '').strip()[:200]}")
+            return False
+    except Exception as exc:
+        log(f"WARN: 'ob login' falló: {exc}")
+        return False
+
+    vault = os.environ.get("OBSIDIAN_VAULT")
+    enc = os.environ.get("OBSIDIAN_ENCRYPTION_PASSWORD")
+    if not vault or not enc:
+        log("WARN: sin OBSIDIAN_VAULT/OBSIDIAN_ENCRYPTION_PASSWORD; login OK pero no configuro sync.")
+        return False
+
+    try:
+        setup = _run_ob(
+            [
+                "sync-setup",
+                "--vault", vault,
+                "--path", str(vault_path),
+                "--device-name", "conductor-cloud",
+            ],
+            stdin_text=enc,
+        )
+        if setup.returncode != 0:
+            log(f"WARN: 'ob sync-setup' falló (código {setup.returncode}): {(setup.stderr or '').strip()[:200]}")
+            return False
+    except Exception as exc:
+        log(f"WARN: 'ob sync-setup' falló: {exc}")
+        return False
+
+    log("'ob' configurado para este workspace.")
+    return True
+
+
 def main() -> int:
     vault_path = resolve_vault_path()
     if vault_path is None:
@@ -176,6 +241,8 @@ def main() -> int:
 
     write_last_id(marker_path, newest_id)
     log(f"escritas {len(new_obs)} observaciones nuevas en {note_path}; marker actualizado a {newest_id}.")
+
+    ensure_ob_ready(vault_path)
 
     log(f"sincronizando vault con 'ob sync --path {vault_path}'…")
     try:
