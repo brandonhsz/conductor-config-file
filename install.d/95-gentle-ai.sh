@@ -50,6 +50,11 @@ gentle-ai install \
 # Telemetría anónima opt-out (coherente con rtk telemetry disable).
 gentle-ai telemetry disable >/dev/null 2>&1 || log "WARN: no pude desactivar telemetría de gentle-ai."
 
+# Receipt-driven development (RDD): opt-in por defecto. Lo dejamos horneado en
+# scope global (~/.claude) para que el review nativo corra en todos los workspaces.
+log "Activando receipt-driven development (scope global)…"
+gentle-ai review mode enable --scope global >/dev/null 2>&1 || log "WARN: no pude activar RDD."
+
 # ── Resolución de conflictos persona gentleman ↔ entorno ──────────────────────
 # La persona choca en 2 puntos con este entorno. Decisión del usuario:
 #   · Atribución en commits → gana la persona (conventional commits, SIN
