@@ -16,6 +16,7 @@
 #   install.d/70-rtk.sh          · instala y configura rtk
 #   install.d/80-node-toolchain.sh · corepack + yarn 3.6.4 (+ watchman opcional)
 #   install.d/85-obsidian-headless.sh · cliente 'ob' + login/sync del second brain
+#   install.d/86-obsidian-runtime-login.sh · hook SessionStart: login/sync en runtime
 #   install.d/90-android-sdk.sh  · JDK 17 + Android SDK 36 + NDK (build avena-mobile)
 #   install.d/95-gentle-ai.sh    · gentle-ai (claude-code, full-gentleman, persona, SDD multi)
 #   install.d/96-second-brain-feeder.sh · feeder Engram → vault Obsidian (hook SessionEnd; tras gentle-ai)
@@ -42,6 +43,7 @@ MODULES=(
   70-rtk.sh
   80-node-toolchain.sh
   85-obsidian-headless.sh
+  86-obsidian-runtime-login.sh
   90-android-sdk.sh
   95-gentle-ai.sh
   96-second-brain-feeder.sh
