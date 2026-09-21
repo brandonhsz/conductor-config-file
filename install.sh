@@ -16,6 +16,7 @@
 #   install.d/70-rtk.sh          · instala y configura rtk
 #   install.d/80-node-toolchain.sh · corepack + yarn 3.6.4 (+ watchman opcional)
 #   install.d/90-android-sdk.sh  · JDK 17 + Android SDK 36 + NDK (build avena-mobile)
+#   install.d/95-gentle-ai.sh    · gentle-ai (claude-code, full-gentleman, persona, SDD multi)
 #
 # Idempotente. VIDEO_API_TOKEN lo inyecta Conductor como secret en runtime.
 # Cada módulo es ejecutable por sí solo (sourcea 00-common.sh si hace falta):
@@ -39,6 +40,7 @@ MODULES=(
   70-rtk.sh
   80-node-toolchain.sh
   90-android-sdk.sh
+  95-gentle-ai.sh
 )
 
 for m in "${MODULES[@]}"; do
