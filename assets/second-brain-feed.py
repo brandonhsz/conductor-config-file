@@ -137,8 +137,13 @@ def ensure_ob_ready(vault_path: Path) -> bool:
 
     email = os.environ.get("OBSIDIAN_EMAIL")
     password = os.environ.get("OBSIDIAN_PASSWORD")
-    if not email or not password:
-        log("WARN: sin OBSIDIAN_EMAIL/OBSIDIAN_PASSWORD en runtime; no autoconfiguro 'ob' (la nota igual se escribe).")
+    vault = os.environ.get("OBSIDIAN_VAULT")
+    enc = os.environ.get("OBSIDIAN_ENCRYPTION_PASSWORD")
+    # Exigimos las 4 ANTES de tocar la red: sin vault/enc el sync-setup nunca
+    # completa, el guard nunca da True y loguearíamos en cada corrida (trabajo
+    # inútil repetido). Con config parcial, salimos sin intentar login.
+    if not (email and password and vault and enc):
+        log("WARN: faltan env vars OBSIDIAN_* completas (email/password/vault/encryption); no autoconfiguro 'ob' ni intento login. La nota igual se escribe.")
         return False
 
     log("configurando 'ob' para este workspace (login + sync-setup)…")
@@ -149,12 +154,6 @@ def ensure_ob_ready(vault_path: Path) -> bool:
             return False
     except Exception as exc:
         log(f"WARN: 'ob login' falló: {exc}")
-        return False
-
-    vault = os.environ.get("OBSIDIAN_VAULT")
-    enc = os.environ.get("OBSIDIAN_ENCRYPTION_PASSWORD")
-    if not vault or not enc:
-        log("WARN: sin OBSIDIAN_VAULT/OBSIDIAN_ENCRYPTION_PASSWORD; login OK pero no configuro sync.")
         return False
 
     try:
