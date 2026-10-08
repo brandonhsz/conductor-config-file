@@ -13,6 +13,7 @@
 #   install.d/40-env.sh          · env vars en ~/.bash_profile
 #   install.d/50-claude-md.sh    · ~/CLAUDE.md (evidencias en video)
 #   install.d/60-skill.sh        · skill validar-links-referido-mercadolibre
+#   install.d/61-skill-deploy-notify.sh · skill deploy-notify-slack (avisos de deploy por Slack)
 #   install.d/70-rtk.sh          · instala y configura rtk
 #   install.d/80-node-toolchain.sh · corepack + yarn 3.6.4 (+ watchman opcional)
 #   install.d/85-obsidian-headless.sh · cliente 'ob' + login/sync del second brain
@@ -40,6 +41,7 @@ MODULES=(
   40-env.sh
   50-claude-md.sh
   60-skill.sh
+  61-skill-deploy-notify.sh
   70-rtk.sh
   80-node-toolchain.sh
   85-obsidian-headless.sh
