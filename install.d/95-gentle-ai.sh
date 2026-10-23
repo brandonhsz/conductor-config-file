@@ -26,7 +26,6 @@
 GENTLE_AI_AGENT="${GENTLE_AI_AGENT:-claude-code}"
 GENTLE_AI_PRESET="${GENTLE_AI_PRESET:-full-gentleman}"
 GENTLE_AI_PERSONA="${GENTLE_AI_PERSONA:-gentleman}"
-GENTLE_AI_SDD_MODE="${GENTLE_AI_SDD_MODE:-multi}"
 GENTLE_AI_SCOPE="${GENTLE_AI_SCOPE:-global}"
 
 log "Instalando binario gentle-ai (método binario, canal stable)…"
@@ -39,12 +38,11 @@ export PATH="/usr/local/bin:$HOME/.local/bin:$PATH"
 
 log "gentle-ai: $(gentle-ai version 2>/dev/null || echo 'NO ENCONTRADO')"
 
-log "Aplicando config no-interactiva (agent=$GENTLE_AI_AGENT preset=$GENTLE_AI_PRESET persona=$GENTLE_AI_PERSONA sdd=$GENTLE_AI_SDD_MODE scope=$GENTLE_AI_SCOPE)…"
+log "Aplicando config no-interactiva (agent=$GENTLE_AI_AGENT preset=$GENTLE_AI_PRESET persona=$GENTLE_AI_PERSONA scope=$GENTLE_AI_SCOPE)…"
 gentle-ai install \
   --agent   "$GENTLE_AI_AGENT" \
   --preset  "$GENTLE_AI_PRESET" \
   --persona "$GENTLE_AI_PERSONA" \
-  --sdd-mode "$GENTLE_AI_SDD_MODE" \
   --scope   "$GENTLE_AI_SCOPE"
 
 # Telemetría anónima opt-out (coherente con rtk telemetry disable).
